@@ -33,23 +33,11 @@
   ],
   [
     "ice thickness",
-    "consequences of getting stuck in the ice"
-  ],
-  [
-    "ice thickness",
     "ship-ice collision"
-  ],
-  [
-    "ice thickness",
-    "ship ice collision consequences"
   ],
   [
     "ice concentration",
     "getting stuck in the ice"
-  ],
-  [
-    "ice concentration",
-    "consequences of getting stuck in the ice"
   ],
   [
     "ice concentration",
@@ -62,33 +50,13 @@
   [
     "ship speed",
     "ship-ice collision"
-  ],
-  [
-    "ship speed",
-    "ship ice collision consequences"
   ],
   [
     "getting stuck in the ice",
-    "risk of getting stuck in the ice"
-  ],
-  [
-    "consequences of getting stuck in the ice",
-    "risk of getting stuck in the ice"
-  ],
-  [
-    "ship-ice collision",
-    "ship ice collision risk"
-  ],
-  [
-    "ship ice collision consequences",
-    "ship ice collision risk"
-  ],
-  [
-    "risk of getting stuck in the ice",
     "composite risk"
   ],
   [
-    "ship ice collision risk",
+    "ship-ice collision",
     "composite risk"
   ]
 ]
