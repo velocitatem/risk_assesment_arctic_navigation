@@ -1,18 +1,17 @@
-import sorobn as hh
-import networkx as nx
-import matplotlib.pyplot as plt
-from pgmpy.models import BayesianNetwork
-from pgmpy.inference import VariableElimination
-import networkx as nx
 import re
-import pandas as pd
-import numpy as np
-from matplotlib import pyplot as plt
 import json
+import numpy as np
+import sorobn as hh
+import pandas as pd
+import networkx as nx
 import streamlit as st
-
+from matplotlib import pyplot as plt
+from pgmpy.models import BayesianNetwork
 from pgmpy.models import BayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
+from pgmpy.inference import VariableElimination
+
+
 
 # Define the structure of the Bayesian Network
 # The structure is defined as a list of tuples, where each tuple represents a directed edge between two nodes

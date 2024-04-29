@@ -1,2 +1,7 @@
 streamlit
+pgmpy
+networkx
+matplotlib
+pandas
+numpy
 sorobn
