@@ -74,7 +74,7 @@ def download_file():
 download_file()
 
 
-SOURCE = "/home/velocitatem/Downloads/cpts.xlsx"
+SOURCE = "./cpts.xlsx"
 #"cpts.xlsx" # Path to the Excel file containing the CPTs
 
 # Define the CPT for 'wind' with the probabilities for wind being in the three states that we hard coded
