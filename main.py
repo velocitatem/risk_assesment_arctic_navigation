@@ -63,8 +63,19 @@ def extract_values(cpt):
         values.append([float(v) for v in val])
     return values
 
+SRC = "https://docs.google.com/spreadsheets/d/1gt74e2fdGRM0PzRgOoMfwiyMZ0yo9s2K/export?format=xlsx"
+# download the file
+@st.cache_resource
+def download_file():
+    import requests
+    r = requests.get(SRC, allow_redirects=True)
+    open('cpts.xlsx', 'wb').write(r.content)
 
-SOURCE = "cpts.xlsx" # Path to the Excel file containing the CPTs
+download_file()
+
+
+SOURCE = "/home/velocitatem/Downloads/cpts.xlsx"
+#"cpts.xlsx" # Path to the Excel file containing the CPTs
 
 # Define the CPT for 'wind' with the probabilities for wind being in the three states that we hard coded
 cpd_wind = TabularCPD(variable='wind', variable_card=3,
@@ -276,6 +287,8 @@ st.image(get_gr())
 # define user inputs for the network
 wind = st.selectbox('Wind', states['wind'])
 wave = st.selectbox('Wave', states['wave'])
+speed = st.selectbox('Ship Speed', states['ship_speed'])
+
 
 # Now we computer the composite risk based on the user inputs
 result = inference.query(
@@ -285,3 +298,19 @@ result = inference.query(
 max_index = np.argmax(result.values) # get the index of the maximum value
 mxvar = result.state_names['composite_risk'][max_index] # get the state name of the maximum value
 st.write(f'Composite Risk: {mxvar}')
+
+result1 = inference.query(
+    variables=['ship-ice_collision'],
+    evidence={'wind': wind, 'wave': wave, 'ship_speed': speed}
+)
+max_index1 = np.argmax(result1.values) # get the index of the maximum value
+mxvar1 = result1.state_names['ship-ice_collision'][max_index1] # get the state name of the maximum value
+st.write(f'Ship-Ice Collision: {mxvar1}')
+
+result2 = inference.query(
+    variables=['getting_stuck_in_the_ice'],
+    evidence={'wind': wind, 'wave': wave, 'ship_speed': speed}
+)
+max_index2 = np.argmax(result2.values) # get the index of the maximum value
+mxvar2 = result2.state_names['getting_stuck_in_the_ice'][max_index2] # get the state name of the maximum value
+st.write(f'Getting Stuck in the Ice: {mxvar2}')
