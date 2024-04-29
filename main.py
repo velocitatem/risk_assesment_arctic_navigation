@@ -15,6 +15,7 @@ from pgmpy.models import BayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 
 # Define the structure of the Bayesian Network
+# The structure is defined as a list of tuples, where each tuple represents a directed edge between two nodes
 model = BayesianNetwork([
     ('wind', 'wind_wave_effect'),
     ('wave', 'wind_wave_effect'),
@@ -31,6 +32,8 @@ model = BayesianNetwork([
     ('ship-ice_collision', 'composite_risk')
 ])
 
+# Define the states for each node
+# With the help of these states, we can define the Conditional Probability Tables (CPTs) for each node
 states = {
     'ice_concentration': ['<50%', '50-70%', '>70%'],
     'ice_thickness': ['<40', '40-80', '>80'],
@@ -44,10 +47,11 @@ states = {
 }
 
 
+# since we are storing the values in excel, we need to extract them
 def extract_values(cpt):
     """
-    Handle extracting values from a pandas DataFrame, some rows might be first 3 rows of just titles
-    WE need extract values in row so [row,row,row], values will only be digits of 0-1 in format X.X
+    Handle extracting values from a pandas DataFrame, some rows might be first 3 rows of just titles.
+    WE need extract values in row so [row,row,row], values will only be digits of 0-1 in format X.X.
     """
     values = []
     for row in cpt.iterrows():
@@ -61,15 +65,28 @@ def extract_values(cpt):
     return values
 
 
-SOURCE = "cpts.xlsx"# :%s/\'cpts.xlsx\'/SOURCE/g
+SOURCE = "cpts.xlsx" # Path to the Excel file containing the CPTs
 
-
+# Define the CPT for 'wind' with the probabilities for wind being in the three states that we hard coded
 cpd_wind = TabularCPD(variable='wind', variable_card=3,
                         values=[[0.5], [0.3], [0.2]],
                         state_names={'wind': states['wind']}
                       )  # Probabilities for wind being in the three states
 
 
+
+
+# we replicate the same pattern for all the other nodes
+# 1. Load the data from the Excel file
+# 2. Extract the values from the data
+# 3. Define the CPT for the node: (i) provide the variable name, (ii) the number of states, (iii) the values, and (iv) the state names for each variable
+# 4. Add the CPT to the model
+# 5. Repeat for all nodes
+
+
+#==========
+# WAVE NODE
+#==========
 
 
 cpt = pd.read_excel(SOURCE, sheet_name='wave')
@@ -83,6 +100,10 @@ cpd_wave = TabularCPD(variable='wave', variable_card=3,
                                      'wave': states['wave']}
                     )
 
+
+#==========
+# WIND WAVE EFFECT NODE
+#==========
 
 
 
@@ -100,6 +121,10 @@ cpd_wind_wave_effect = TabularCPD(variable='wind_wave_effect', variable_card=2,
                                   )
 
 
+#==========
+# ICE THICKNESS NODE
+#==========
+
 ice_thickness = pd.read_excel(SOURCE, sheet_name='ice_thickness')
 ice_thickness_values = extract_values(ice_thickness)
 
@@ -113,6 +138,9 @@ cpd_ice_thickness = TabularCPD(variable='ice_thickness', variable_card=3,
                                 )
 
 
+#==========
+# ICE CONCENTRATION NODE
+#==========
 
 ice_concentration = pd.read_excel(SOURCE, sheet_name='ice_concentration')
 ice_concentration_values = extract_values(ice_concentration)
@@ -125,6 +153,11 @@ cpd_ice_concentration = TabularCPD(variable='ice_concentration', variable_card=3
                                     state_names={'wind_wave_effect': states['wind_wave_effect'],
                                                 'ice_concentration': states['ice_concentration']}
                                     )
+
+
+#==========
+# SHIP SPEED NODE
+#==========
 
 
 ship_speed = pd.read_excel(SOURCE, sheet_name='ship_speed')
@@ -140,6 +173,10 @@ cpd_ship_speed = TabularCPD(variable='ship_speed', variable_card=4,
                                             'ship_speed': states['ship_speed']}
                                 )
 
+#==========
+# GETTING STUCK IN THE ICE NODE
+#==========
+
 
 getting_stuck = pd.read_excel(SOURCE, sheet_name='getting_stuck')
 getting_stuck_values = extract_values(getting_stuck)
@@ -154,6 +191,9 @@ cpd_getting_stuck = TabularCPD(variable='getting_stuck_in_the_ice', variable_car
                                             'getting_stuck_in_the_ice': states['getting_stuck_in_the_ice']}
                                  )
 
+#==========
+# SHIP-ICE COLLISION NODE
+#==========
 
 ship_ice_collision = pd.read_excel(SOURCE, sheet_name='ship_ice_collision')
 ship_ice_collision_values = extract_values(ship_ice_collision)
@@ -168,6 +208,10 @@ cpd_ship_ice_collision = TabularCPD(variable='ship-ice_collision', variable_card
                                                 'ice_concentration': states['ice_concentration'],
                                                 'ship-ice_collision': states['ship-ice_collision']}
                                     )
+
+#==========
+# COMPOSITE RISK NODE
+#==========
 
 
 composite_risk = pd.read_excel(SOURCE, sheet_name='composite_risk')
@@ -185,7 +229,17 @@ cpd_composite_risk = TabularCPD(variable='composite_risk', variable_card=3,
 
 
 
-cpts = [cpd_wind, cpd_wave, cpd_wind_wave_effect, cpd_ice_thickness, cpd_ice_concentration, cpd_ship_speed, cpd_getting_stuck, cpd_ship_ice_collision, cpd_composite_risk]
+# Now we add all the CPTs to the model
+cpts = [cpd_wind,
+        cpd_wave,
+        cpd_wind_wave_effect,
+        cpd_ice_thickness,
+        cpd_ice_concentration,
+        cpd_ship_speed,
+        cpd_getting_stuck,
+        cpd_ship_ice_collision,
+        cpd_composite_risk]
+
 model.add_cpds(*cpts)
 
 
@@ -194,19 +248,22 @@ model.add_cpds(*cpts)
 assert model.check_model()
 
 
+# Create the inference object in order to perform queries
 inference = VariableElimination(model)
 
+# Define the graph for the Bayesian Network
 G = nx.DiGraph()
 G.add_nodes_from(model.nodes())
 G.add_edges_from(model.edges())
 
-@st.cache_resource
+@st.cache_resource # we cache the graph becauase we dont want to recompute it every time
 def get_gr():
     pos = nx.spring_layout(G)  # positions for all nodes
     nx.draw(G, pos, with_labels=True, node_size=2000, node_color="skyblue", font_size=10, font_weight='bold')
     plt.title('Bayesian Network Graph')
     plt.savefig('graph.png')
 
+    # probably a neater way to do this but this works
     st.title('Bayesian Network')
 
     st.write('This is a simple example of a Bayesian Network. The nodes represent different events and the edges represent the dependencies between them.')
@@ -215,10 +272,17 @@ def get_gr():
 
 st.image(get_gr())
 
+
+
+# define user inputs for the network
 wind = st.selectbox('Wind', states['wind'])
 wave = st.selectbox('Wave', states['wave'])
-result = inference.query(variables=['composite_risk'], evidence={'wind': wind, 'wave': wave})
-max_index = np.argmax(result.values)
-mxvar = result.state_names['composite_risk'][max_index]
 
+# Now we computer the composite risk based on the user inputs
+result = inference.query(
+    variables=['composite_risk'],
+    evidence={'wind': wind, 'wave': wave}
+) # P(composite_risk | wind, wave)
+max_index = np.argmax(result.values) # get the index of the maximum value
+mxvar = result.state_names['composite_risk'][max_index] # get the state name of the maximum value
 st.write(f'Composite Risk: {mxvar}')
