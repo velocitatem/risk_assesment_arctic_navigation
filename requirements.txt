@@ -1,5 +1,6 @@
 streamlit
 pgmpy
+openpyxl
 networkx
 matplotlib
 pandas
